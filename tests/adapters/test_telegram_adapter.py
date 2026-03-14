@@ -1,6 +1,7 @@
 import unittest
 from dataclasses import dataclass
 
+from swiss_german_voice.adapters.telegram.api import TelegramApiError
 from swiss_german_voice.adapters.telegram.handler import TelegramVoiceHandler, render_telegram_reply
 from swiss_german_voice.adapters.telegram.normalize import TelegramNormalizationError, normalize_telegram_voice_update
 from swiss_german_voice.core.envelopes import CoreResponse, OutcomeStatus
@@ -39,6 +40,16 @@ class _FakeRuntime:
             artifacts={"record_id": 7},
             errors=[],
         )
+
+
+class _RaisingRuntime:
+    def handle(self, request):  # noqa: ANN001, ARG002
+        raise RuntimeError("runtime failure")
+
+
+class _RaisingApi(_FakeApi):
+    def get_file_path(self, file_id: str) -> str:  # noqa: ARG002
+        raise TelegramApiError("transport failure")
 
 
 class TelegramNormalizeTests(unittest.TestCase):
@@ -98,6 +109,57 @@ class TelegramHandlerTests(unittest.TestCase):
     def test_render_telegram_reply(self) -> None:
         text = render_telegram_reply(["line one", "", "line two"])
         self.assertEqual(text, "line one\nline two")
+
+    def test_handler_download_filename_ignores_untrusted_ids(self) -> None:
+        api = _FakeApi()
+        runtime = _FakeRuntime()
+        handler = TelegramVoiceHandler(api=api, runtime=runtime, media_dir="/tmp/tg-media")
+
+        handler.handle_update(
+            {
+                "message": {
+                    "message_id": "../../../etc/passwd",
+                    "chat": {"id": "../../tmp"},
+                    "from": {"id": 77},
+                    "voice": {"file_id": "abc123"},
+                }
+            }
+        )
+
+        self.assertEqual(len(api.downloaded), 1)
+        _, destination = api.downloaded[0]
+        self.assertTrue(destination.startswith("/tmp/tg-media/tg_"))
+        self.assertTrue(destination.endswith(".ogg"))
+        self.assertNotIn("..", destination)
+        self.assertNotIn("passwd", destination)
+
+    def test_try_handle_update_catches_transport_errors(self) -> None:
+        handler = TelegramVoiceHandler(api=_RaisingApi(), runtime=_FakeRuntime(), media_dir="/tmp/tg-media")
+        result = handler.try_handle_update(
+            {
+                "message": {
+                    "message_id": 12,
+                    "chat": {"id": 99},
+                    "from": {"id": 77},
+                    "voice": {"file_id": "abc123"},
+                }
+            }
+        )
+        self.assertIsNone(result)
+
+    def test_try_handle_update_catches_unexpected_errors(self) -> None:
+        handler = TelegramVoiceHandler(api=_FakeApi(), runtime=_RaisingRuntime(), media_dir="/tmp/tg-media")
+        result = handler.try_handle_update(
+            {
+                "message": {
+                    "message_id": 12,
+                    "chat": {"id": 99},
+                    "from": {"id": 77},
+                    "voice": {"file_id": "abc123"},
+                }
+            }
+        )
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from typing import Any
 
 from swiss_german_voice.core.envelopes import CoreRequest, InputKind
 
-_ALLOWED_AUDIO_EXTENSIONS = {".m4a", ".ogg", ".webm", ".wav"}
+_ALLOWED_AUDIO_EXTENSIONS = {".m4a", ".oga", ".ogg", ".webm", ".wav"}
 
 
 class NormalizationError(ValueError):

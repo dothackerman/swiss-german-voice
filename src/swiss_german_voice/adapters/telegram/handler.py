@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
-from swiss_german_voice.adapters.telegram.api import TelegramBotApi
+from swiss_german_voice.adapters.telegram.api import TelegramApiError, TelegramBotApi
 from swiss_german_voice.adapters.telegram.normalize import TelegramNormalizationError, normalize_telegram_voice_update
 from swiss_german_voice.core.normalize import normalize_core_request
 from swiss_german_voice.core.service import CoreRuntime
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -46,12 +50,19 @@ class TelegramVoiceHandler:
     def try_handle_update(self, update: dict[str, Any]) -> dict[str, Any] | None:
         try:
             return self.handle_update(update)
-        except TelegramNormalizationError:
+        except TelegramNormalizationError as exc:
+            LOGGER.debug("ignored non-voice/invalid telegram update: %s", exc)
+            return None
+        except TelegramApiError:
+            LOGGER.exception("telegram api transport error while handling update")
+            return None
+        except Exception:
+            LOGGER.exception("unexpected error while handling telegram update")
             return None
 
     def _download_voice_file(self, file_path: str, event) -> str:
         suffix = Path(file_path).suffix or ".ogg"
-        destination = Path(self.media_dir) / f"tg_{event.chat_id}_{event.message_id}{suffix}"
+        destination = Path(self.media_dir) / f"tg_{uuid4().hex}{suffix}"
         return self.api.download_file(file_path, str(destination))
 
 

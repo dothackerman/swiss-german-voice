@@ -5,8 +5,13 @@ import sqlite3
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from swiss_german_voice.core.envelopes import CoreRequest, InputKind, SegmentUncertainty, TranscriptResult, TranscriptionRecord
+
+
+class PersistenceError(ValueError):
+    """Raised when a transcription record cannot be persisted safely."""
 
 
 class SQLiteTranscriptionStore:
@@ -15,6 +20,9 @@ class SQLiteTranscriptionStore:
         self._ensure_db()
 
     def save(self, record: TranscriptionRecord) -> int:
+        audio_path = self._coerce_audio_path(record.request.payload)
+        metadata_json = self._serialize_metadata(record.request.metadata)
+
         conn = sqlite3.connect(self.db_path)
         try:
             with conn:
@@ -39,12 +47,12 @@ class SQLiteTranscriptionStore:
                         record.request.conversation_ref,
                         record.request.user_ref,
                         record.request.input_kind.value,
-                        record.request.payload.get("audio_path"),
+                        audio_path,
                         record.transcript.text,
                         record.transcript.language,
                         record.transcript.duration_seconds,
                         json.dumps([asdict(seg) for seg in record.transcript.segments]),
-                        json.dumps(record.request.metadata),
+                        metadata_json,
                         record.created_at.astimezone(timezone.utc).isoformat(),
                     ),
                 )
@@ -82,6 +90,22 @@ class SQLiteTranscriptionStore:
             return TranscriptionRecord(request=request, transcript=transcript, created_at=created_at, id=row["id"])
         finally:
             conn.close()
+
+    def _coerce_audio_path(self, payload: dict[str, Any]) -> str:
+        raw_audio_path = payload.get("audio_path")
+        if raw_audio_path is None:
+            raise PersistenceError("request.payload.audio_path is required for persistence")
+
+        audio_path = str(raw_audio_path).strip()
+        if not audio_path:
+            raise PersistenceError("request.payload.audio_path must be a non-empty string")
+        return audio_path
+
+    def _serialize_metadata(self, metadata: dict[str, Any]) -> str:
+        try:
+            return json.dumps(metadata)
+        except (TypeError, ValueError) as exc:
+            raise PersistenceError(f"request.metadata must be JSON-serializable: {exc}") from exc
 
     def _ensure_db(self) -> None:
         db_dir = Path(self.db_path).parent

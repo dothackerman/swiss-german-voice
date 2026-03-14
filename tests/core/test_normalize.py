@@ -32,6 +32,17 @@ class NormalizeCoreRequestTests(unittest.TestCase):
                 }
             )
 
+    def test_normalize_core_request_accepts_telegram_oga_extension(self) -> None:
+        request = normalize_core_request(
+            {
+                "source_adapter": "telegram",
+                "conversation_ref": "chat-123",
+                "user_ref": "user-42",
+                "payload": {"audio_path": "/tmp/test.oga"},
+            }
+        )
+        self.assertEqual(request.payload["audio_path"], "/tmp/test.oga")
+
     def test_normalize_core_request_requires_fields(self) -> None:
         with self.assertRaisesRegex(NormalizationError, "missing required fields"):
             normalize_core_request({"source_adapter": "telegram"})
