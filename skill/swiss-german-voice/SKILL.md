@@ -1,29 +1,58 @@
+---
+name: swiss-german-voice
+description: Transcribe and interpret Swiss German voice memos sent via OpenClaw. Use when a voice memo (.ogg/.m4a) arrives and the user communicates in Swiss German or German. Runs faster-whisper locally (CUDA-first, CPU fallback), returns raw transcript + interpretation + confidence summary.
+metadata: {"openclaw": {"requires": {"bins": ["python3"]}}}
+---
+
 # swiss-german-voice
 
-Use this skill when handling Swiss German voice workflows for `swiss-german-voice`.
+Transcribe and interpret a Swiss German voice memo.
 
-Primary OpenClaw usage pattern:
+## Trigger
 
-1. Build the full pipeline via `build_adapter(...)` from `swiss_german_voice.factory`.
-2. OpenClaw provides a local media path; pass that path directly to the adapter.
-3. Call `process_voice_memo(audio_path, user_ref=..., conversation_ref=..., language_hint="de")`.
-4. Send `reply_text` through the OpenClaw message tool.
+When an inbound voice memo arrives and the user communicates in Swiss German or German.
 
-Factory invocation:
+## Invocation
 
 ```python
+import sys
+sys.path.insert(0, "/path/to/swiss-german-voice/src")
+
 from swiss_german_voice.factory import build_adapter
 
 adapter = build_adapter(
-    db_path="var/swiss_german_voice.sqlite3",
+    db_path="/path/to/swiss-german-voice/var/swiss_german_voice.sqlite3",
     lexicon_words=["OpenClaw", "Scripts"],
     model_size="small",
     language="de",
 )
+
+result = adapter.process_voice_memo(
+    audio_path="<inbound media path from OpenClaw>",
+    user_ref="<user id>",
+    conversation_ref="<channel:user_id>",
+    language_hint="de",
+)
+
+# Send result["reply_text"] back to the user
 ```
 
-Notes:
+## Output format
 
-- OpenClaw is the primary integration path for runtime usage.
-- Telegram polling adapter remains a reference adapter and test harness, not the primary deployment interface.
-- Keep adapters thin: normalize channel input to the shared core request envelope and keep channel transport details out of `src/swiss_german_voice/core/`.
+```
+🎙 Transkript:
+<raw transcript>
+
+💡 Interpretation:
+<normalized interpretation>
+
+📊 Konfidenz: high|medium|low (N Segmente unter Schwellenwert)
+```
+
+## Notes
+
+- Replace `/path/to/swiss-german-voice` with the actual clone location on your machine.
+- `model_size="small"` is fast; use `"medium"` for better accuracy on complex dialect.
+- Add domain-specific words to `lexicon_words` to improve recognition of names and terms.
+- See `src/swiss_german_voice/data/lexicon_corrections.json` for correction rules.
+- Full docs: `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`.

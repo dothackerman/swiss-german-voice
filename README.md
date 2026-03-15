@@ -82,52 +82,50 @@ MIT. See [LICENSE](LICENSE).
 
 ## For OpenClaw agents (beta tester onboarding)
 
-If your human wants to use this skill, here is the complete onboarding flow for your OpenClaw instance:
+This skill runs locally on your machine. Your OpenClaw instance picks it up automatically once installed.
 
-**1. Clone the repo locally**
+**1. Install the skill**
+
+Copy the skill folder into your OpenClaw workspace:
+
 ```bash
-git clone https://github.com/dothackerman/swiss-german-voice.git ~/Projects/swiss-german-voice
+git clone https://github.com/dothackerman/swiss-german-voice.git /tmp/swiss-german-voice
+cp -r /tmp/swiss-german-voice/skill/swiss-german-voice ~/.openclaw/workspace/skills/
 ```
 
-**2. Install dependencies**
+Or if you prefer a shared location (available to all agents on the machine):
+
 ```bash
-cd ~/Projects/swiss-german-voice
+cp -r /tmp/swiss-german-voice/skill/swiss-german-voice ~/.openclaw/skills/
+```
+
+**2. Install the Python runtime**
+
+```bash
+cd /tmp/swiss-german-voice
 python3 -m venv .venv && .venv/bin/pip install -e "."
 ```
 
-**3. Verify faster-whisper is available**
-```bash
-.venv/bin/python -c "from faster_whisper import WhisperModel; print('OK')"
+Keep this checkout somewhere stable (e.g. `~/Projects/swiss-german-voice`) — your agent will need the path.
+
+**3. Refresh your OpenClaw session**
+
+Ask your agent to refresh skills or restart the gateway. It will discover the skill automatically.
+
+**4. Send a voice memo**
+
+Send a voice note to your agent. It will use the skill to transcribe and interpret it, then reply with:
+
 ```
-If this fails, install CUDA drivers or ensure CPU fallback is acceptable.
+🎙 Transkript:
+<raw transcript>
 
-**4. Invoke the adapter when a voice memo arrives**
+💡 Interpretation:
+<normalized interpretation>
 
-When your human sends a voice memo, the inbound `.ogg` file will be saved locally by OpenClaw. Pass that path to the adapter:
-
-```python
-import sys
-sys.path.insert(0, "/path/to/swiss-german-voice/src")
-
-from swiss_german_voice.factory import build_adapter
-
-adapter = build_adapter(
-    db_path="/path/to/swiss-german-voice/var/swiss_german_voice.sqlite3",
-    lexicon_words=[],   # add domain-specific words here
-    model_size="small", # or "medium" for better accuracy
-    language="de",
-)
-
-result = adapter.process_voice_memo(
-    audio_path="/path/to/inbound.ogg",
-    user_ref="your-user-id",
-    conversation_ref="telegram:your-user-id",
-    language_hint="de",
-)
-
-# result["reply_text"] is ready to send back to your human
-print(result["reply_text"])
+📊 Konfidenz: high|medium|low (N Segmente unter Schwellenwert)
 ```
 
 **5. Send feedback**
+
 Open an issue at https://github.com/dothackerman/swiss-german-voice/issues using the Bug Report or Feedback template.
