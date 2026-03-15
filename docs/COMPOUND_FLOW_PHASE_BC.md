@@ -57,3 +57,15 @@
   - no new critical architecture issues found; current separation (core vs Telegram adapter) remains clean
   - key tradeoff: broad exception catch in polling path improves uptime but can hide recurring defects if logs are not monitored
   - next hardening step: add lightweight error counters/metrics in polling loop to detect repeated transient failures early
+
+## OpenClaw adapter
+
+- Added `src/swiss_german_voice/adapters/openclaw/adapter.py` as an OpenClaw-native ingress path for local inbound media files.
+- Input contract:
+  - local audio path from OpenClaw media persistence
+  - `user_ref`, `conversation_ref`, and optional `language_hint` (default `de`)
+- Adapter behavior:
+  - normalizes into the existing core request envelope (`source_adapter=openclaw`)
+  - calls `CoreRuntime`
+  - returns structured output (`transcript`, `interpretation`, `confidence_summary`, `reply_text`) for direct OpenClaw message dispatch
+- Constraint kept: legacy Telegram polling adapter stays in place for reference and separate bot-flow usage.
