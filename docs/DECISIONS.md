@@ -15,7 +15,7 @@
 ## 2026-03-15: One-call OpenClaw factory entrypoint
 
 - Decision: Add `build_adapter(db_path, lexicon_words, model_size, language)` in `src/swiss_german_voice/factory.py`.
-- Why: Sil can instantiate the full OpenClaw pipeline without manually wiring core components.
+- Why: the OpenClaw adapter can be instantiated without manually wiring core components.
 - Tradeoff: Factory currently returns the OpenClaw adapter only; if more adapters need one-call factories, we will add explicit factory functions instead of a generic builder.
 
 ## 2026-03-15: Skill docs now treat OpenClaw as primary runtime path

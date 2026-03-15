@@ -29,7 +29,7 @@ from swiss_german_voice.factory import build_adapter
 
 adapter = build_adapter(
     db_path="var/swiss_german_voice.sqlite3",
-    lexicon_words=["OpenClaw", "Sil", "Scripts"],
+    lexicon_words=["OpenClaw", "Scripts"],
     model_size="small",
     language="de",
 )
