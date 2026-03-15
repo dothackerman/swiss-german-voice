@@ -1,7 +1,10 @@
 import unittest
 from dataclasses import dataclass
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from swiss_german_voice.adapters.openclaw.adapter import OpenClawVoiceAdapter
+from swiss_german_voice.core.correction import TranscriptCorrectionLayer
 from swiss_german_voice.core.envelopes import CoreResponse, OutcomeStatus
 
 
@@ -54,6 +57,28 @@ class OpenClawAdapterTests(unittest.TestCase):
         self.assertIn("🎙 Transkript:", result["reply_text"])
         self.assertIn("💡 Interpretation:", result["reply_text"])
         self.assertIn("📊 Konfidenz: medium (1 Segmente unter Schwellenwert)", result["reply_text"])
+
+    def test_process_voice_memo_uses_configurable_lexicon_layer(self) -> None:
+        with TemporaryDirectory(prefix="swiss-german-voice-tests-") as tmp_dir:
+            lexicon_path = Path(tmp_dir) / "lexicon.json"
+            lexicon_path.write_text(
+                '{"replacements":[{"from":"bug","to":"issue"},{"from":"branch","to":"zweig"}]}',
+                encoding="utf-8",
+            )
+            runtime = _FakeRuntime()
+            adapter = OpenClawVoiceAdapter(
+                runtime=runtime,
+                correction_layer=TranscriptCorrectionLayer.from_file(str(lexicon_path)),
+            )
+
+            result = adapter.process_voice_memo(
+                "/tmp/input.ogg",
+                user_ref="og-user-1",
+                conversation_ref="conv-9",
+            )
+
+            self.assertIn("issue", result["interpretation"])
+            self.assertIn("zweig", result["interpretation"])
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import re
 from typing import Any
 
+from swiss_german_voice.core.correction import TranscriptCorrectionLayer
 from swiss_german_voice.core.normalize import normalize_core_request
 from swiss_german_voice.core.service import CoreRuntime
 
@@ -14,6 +14,15 @@ _NO_SPEECH_THRESHOLD = 0.6
 @dataclass(slots=True)
 class OpenClawVoiceAdapter:
     runtime: CoreRuntime
+    correction_layer: TranscriptCorrectionLayer
+
+    def __init__(
+        self,
+        runtime: CoreRuntime,
+        correction_layer: TranscriptCorrectionLayer | None = None,
+    ) -> None:
+        self.runtime = runtime
+        self.correction_layer = correction_layer or TranscriptCorrectionLayer.default()
 
     def process_voice_memo(
         self,
@@ -36,7 +45,7 @@ class OpenClawVoiceAdapter:
 
         core_response = self.runtime.handle(core_request)
         transcript = _extract_transcript(core_response)
-        interpretation = _interpret_transcript(transcript)
+        interpretation = self.correction_layer.correct(transcript)
         confidence_label, flagged_segments = _summarize_confidence(core_response.artifacts)
         confidence_summary = f"{confidence_label} - {flagged_segments} segments flagged"
         reply_text = _render_reply_text(
@@ -65,31 +74,6 @@ def _extract_transcript(core_response: Any) -> str:
             transcript = str(messages[0])
 
     return transcript.strip() or "(Keine Sprache erkannt)"
-
-
-def _interpret_transcript(transcript: str) -> str:
-    cleaned = " ".join(transcript.split())
-    if not cleaned:
-        return "(Keine Interpretation verfuegbar)"
-
-    replacements = [
-        (r"\bi\b", "ich"),
-        (r"\bmer\b", "wir"),
-        (r"\bhei?t\b", "heisst"),
-        (r"\bgit\b", "gibt"),
-        (r"\bned\b", "nicht"),
-        (r"\bnid\b", "nicht"),
-        (r"\bschaffe\b", "arbeiten"),
-        (r"\bbugfix\b", "bug fix"),
-        (r"\bfehlermeldig\b", "bug report"),
-        (r"\bdeploye\b", "deployen"),
-    ]
-
-    interpreted = cleaned
-    for pattern, target in replacements:
-        interpreted = re.sub(pattern, target, interpreted, flags=re.IGNORECASE)
-
-    return interpreted[:1].upper() + interpreted[1:]
 
 
 def _summarize_confidence(artifacts: dict[str, Any] | None) -> tuple[str, int]:

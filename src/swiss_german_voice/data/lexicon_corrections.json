@@ -1,0 +1,18 @@
+{
+  "replacements": [
+    { "from": "open cloud", "to": "OpenClaw" },
+    { "from": "openclaw", "to": "OpenClaw" },
+    { "from": "skrips", "to": "Scripts" },
+    { "from": "türen", "to": "tüend/machen" },
+    { "from": "fehlermeldig", "to": "Bug Report" },
+    { "from": "bugfix", "to": "Bug Fix" },
+    { "from": "deploye", "to": "deployen" },
+    { "from": "schaffe", "to": "arbeiten" },
+    { "from": "ned", "to": "nicht" },
+    { "from": "nid", "to": "nicht" },
+    { "from": "mer", "to": "wir" },
+    { "from": "heit", "to": "heisst" },
+    { "from": "i", "to": "ich" },
+    { "from": "git", "to": "gibt" }
+  ]
+}
