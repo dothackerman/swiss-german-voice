@@ -1,6 +1,6 @@
 # swiss-german-voice
 
-> ⚠️ **Beta** — This skill is in active development. Expect rough edges, especially around Swiss German dialect normalization. Feedback welcome via Discord (see below).
+> ⚠️ **Beta** — This skill is in active development. Expect rough edges, especially around Swiss German dialect normalization.
 
 `swiss-german-voice` is an [OpenClaw](https://openclaw.ai) skill for transcribing and interpreting Swiss German voice memos. It is channel-agnostic at its core, with OpenClaw as the primary runtime path.
 
@@ -72,7 +72,7 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 
 This skill is in beta. If you use it and encounter issues or have ideas:
 - Open an issue using the templates in `.github/ISSUE_TEMPLATE/`
-- Or find us on the [OpenClaw Discord](https://discord.com/invite/clawd)
+
 
 PRs are not expected at this stage. Feedback and bug reports are.
 
