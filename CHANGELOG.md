@@ -2,7 +2,7 @@
 
 All notable changes to `swiss-german-voice` will be documented in this file.
 
-## v0.1.0 - 2026-03-15
+## v0.0.1-rc1 - 2026-03-15
 
 ### Added
 
