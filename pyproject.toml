@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "swiss-german-voice"
-version = "0.1.0"
-description = "Channel-agnostic Swiss German voice core with Telegram adapter"
+version = "0.0.1-rc1"
+description = "OpenClaw skill for transcribing and interpreting Swiss German voice memos"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
