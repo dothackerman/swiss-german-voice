@@ -1,11 +1,7 @@
 # Scripts
 
-This directory is reserved for future project scripts.
+Scripts in this repository are narrow and auditable.
 
-Keep early scripts narrow and auditable:
+## Available
 
-- bootstrap tasks
-- local verification helpers
-- release or maintenance helpers
-
-Avoid turning `scripts/` into a junk drawer. If a script becomes essential, document its contract and add tests around the behavior it supports.
+- `scripts/run_telegram_dev.sh`: load `.env` and run the local Telegram polling adapter against the channel-agnostic core.
