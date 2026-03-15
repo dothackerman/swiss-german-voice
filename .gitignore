@@ -19,3 +19,10 @@ __pycache__/
 
 .idea/
 .vscode/
+
+# Runtime data — never commit voice memos, transcription DB, or local media
+var/
+
+# User-specific lexicon overrides (personal terms stay local)
+lexicon_override*.json
+lexicon_personal*.json
