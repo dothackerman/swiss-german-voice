@@ -12,8 +12,8 @@ Define and implement the minimal channel-agnostic core runtime slice.
 
 ## Phase C
 
-Add the Telegram adapter against the shared contract.
+Deliver adapter integrations against the shared contract. Telegram was first; OpenClaw is now the primary runtime invocation path.
 
 ## Phase D
 
-Add more channels and the operational systems needed for a public project.
+Add operational hardening and public-release workflows (issues, releases, maintenance docs) while preserving adapter/core boundaries.

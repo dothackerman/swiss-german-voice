@@ -15,9 +15,9 @@ An adapter should:
 
 ## Shared request envelope
 
-The exact runtime schema is deferred to Phase B, but the envelope should conceptually include:
+The runtime request envelope includes:
 
-- `source_adapter`: adapter identifier such as `telegram`
+- `source_adapter`: adapter identifier such as `openclaw` or `telegram`
 - `conversation_ref`: stable conversation or thread reference
 - `user_ref`: stable user reference as known by the adapter
 - `input_kind`: expected to support voice first, with room for text or commands later
@@ -34,9 +34,21 @@ The core should return a structured outcome that can be rendered by any adapter:
 - `artifacts`: optional generated outputs or references
 - `errors`: categorized errors with enough detail for adapter-specific handling
 
+## Invocation pattern (OpenClaw)
+
+`swiss_german_voice.factory.build_adapter(...)` is the preferred entrypoint for OpenClaw integration. It wires:
+
+- `FasterWhisperTranscriber`
+- `SQLiteTranscriptionStore`
+- `PersonalLexicon`
+- `CoreRuntime`
+- `OpenClawVoiceAdapter`
+
+Then call `OpenClawVoiceAdapter.process_voice_memo(...)` per inbound media file.
+
 ## Non-goals
 
-- exposing raw Telegram payloads to the core
+- exposing raw adapter payloads to the core
 - encoding delivery details such as message IDs into core business logic
 - letting one adapter add fields the contract cannot explain
 
