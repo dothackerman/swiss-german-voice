@@ -22,8 +22,8 @@ from swiss_german_voice.factory import build_adapter
 
 adapter = build_adapter(
     db_path="/path/to/swiss-german-voice/var/swiss_german_voice.sqlite3",
-    lexicon_words=["OpenClaw", "Scripts"],
-    model_size="small",
+    lexicon_words=[],  # personal terms auto-loaded from var/lexicon_personal.json
+    model_size="large",
     language="de",
 )
 
@@ -47,12 +47,18 @@ result = adapter.process_voice_memo(
 <normalized interpretation>
 
 📊 Konfidenz: high|medium|low (N Segmente unter Schwellenwert)
+
+⚠️ Zur Überprüfung:
+  [mm:ss–mm:ss] "<flagged segment text>"
+    vorher:  "<previous segment>"
+    nachher: "<next segment>"
 ```
 
 ## Notes
 
 - Replace `/path/to/swiss-german-voice` with the actual clone location on your machine.
-- `model_size="small"` is fast; use `"medium"` for better accuracy on complex dialect.
-- Add domain-specific words to `lexicon_words` to improve recognition of names and terms.
+- `model_size="large"` recommended for long recordings and complex dialect; falls back to CPU if no CUDA.
+- Personal lexicon auto-loaded from `var/lexicon_personal.json` (gitignored — stays local).
+- Additional words can be passed via `lexicon_words` at invocation time.
 - See `src/swiss_german_voice/data/lexicon_corrections.json` for correction rules.
 - Full docs: `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`.
